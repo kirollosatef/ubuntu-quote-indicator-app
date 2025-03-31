@@ -1,0 +1,1 @@
+# ubuntu-quote-indicator-app
