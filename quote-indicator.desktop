@@ -2,7 +2,7 @@
 Name=Quote Indicator
 Comment=Display random quotes at regular intervals
 Exec=/usr/local/bin/quote-indicator
-Icon=/usr/local/share/quote-indicator/quotes.png
+Icon=quote-indicator
 Terminal=false
 Type=Application
 Categories=Utility;

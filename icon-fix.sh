@@ -9,7 +9,7 @@ echo "Updating quote indicator to use custom icon..."
 pkill -f "python3 /usr/local/bin/quote-indicator" || true
 
 # Create a modified version of the Python script
-cat > /tmp/quote-indicator-modified.py << 'EOF'
+cat >/tmp/quote-indicator-modified.py <<'EOF'
 #!/usr/bin/env python3
 import gi
 import json
@@ -445,13 +445,23 @@ if __name__ == '__main__':
     main()
 EOF
 
-# Copy the icon to the system location
+# Copy the icon to the system locations
 if [ -f "quotes.png" ]; then
-    sudo mkdir -p /usr/local/share/quote-indicator
-    sudo cp quotes.png /usr/local/share/quote-indicator/
+  # For the panel indicator
+  sudo mkdir -p /usr/local/share/quote-indicator
+  sudo cp quotes.png /usr/local/share/quote-indicator/
+
+  # For the application menu (standard locations)
+  sudo mkdir -p /usr/share/icons/hicolor/48x48/apps
+  sudo mkdir -p /usr/share/icons/hicolor/256x256/apps
+  sudo cp quotes.png /usr/share/icons/hicolor/48x48/apps/quote-indicator.png
+  sudo cp quotes.png /usr/share/icons/hicolor/256x256/apps/quote-indicator.png
+
+  # Update icon cache
+  sudo gtk-update-icon-cache -f /usr/share/icons/hicolor
 else
-    echo "Error: quotes.png not found in current directory!"
-    exit 1
+  echo "Error: quotes.png not found in current directory!"
+  exit 1
 fi
 
 # Copy the modified script to the system location
@@ -459,12 +469,12 @@ sudo cp /tmp/quote-indicator-modified.py /usr/local/bin/quote-indicator
 sudo chmod +x /usr/local/bin/quote-indicator
 
 # Update the desktop file to use the custom icon
-cat > quote-indicator.desktop << EOF
+cat >quote-indicator.desktop <<EOF
 [Desktop Entry]
 Name=Quote Indicator
 Comment=Display random quotes at regular intervals
 Exec=/usr/local/bin/quote-indicator
-Icon=/usr/local/share/quote-indicator/quotes.png
+Icon=quote-indicator
 Terminal=false
 Type=Application
 Categories=Utility;
