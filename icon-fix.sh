@@ -1,3 +1,15 @@
+#!/bin/bash
+
+# This script fixes the icon path in the installed application
+# to use the custom icon (quotes.png) in the top panel
+
+echo "Updating quote indicator to use custom icon..."
+
+# Stop the running instance if it exists
+pkill -f "python3 /usr/local/bin/quote-indicator" || true
+
+# Create a modified version of the Python script
+cat > /tmp/quote-indicator-modified.py << 'EOF'
 #!/usr/bin/env python3
 import gi
 import json
@@ -15,25 +27,16 @@ class QuoteIndicator:
     def __init__(self):
         self.app = 'quote-indicator'
         
-        # Get the directory of the script for icon path
-        self.script_dir = os.path.dirname(os.path.realpath(__file__))
+        # Path to the custom icon
+        icon_path = '/usr/local/share/quote-indicator/quotes.png'
         
-        # Use custom icon if available, otherwise fallback to system icon
-        self.icon_path = os.path.join(self.script_dir, 'quotes.png')
-        if os.path.exists(self.icon_path):
-            self.indicator = AppIndicator.Indicator.new(
-                self.app,
-                self.icon_path,
-                AppIndicator.IndicatorCategory.APPLICATION_STATUS
-            )
-        else:
-            # Fallback to system icon
-            self.indicator = AppIndicator.Indicator.new(
-                self.app,
-                "format-text-quote-symbolic",
-                AppIndicator.IndicatorCategory.APPLICATION_STATUS
-            )
-            
+        # Use absolute path for custom icon
+        self.indicator = AppIndicator.Indicator.new(
+            self.app,
+            icon_path,
+            AppIndicator.IndicatorCategory.APPLICATION_STATUS
+        )
+        
         self.indicator.set_status(AppIndicator.IndicatorStatus.ACTIVE)
         
         # Initialize notification system
@@ -440,3 +443,37 @@ def main():
 
 if __name__ == '__main__':
     main()
+EOF
+
+# Copy the icon to the system location
+if [ -f "quotes.png" ]; then
+    sudo mkdir -p /usr/local/share/quote-indicator
+    sudo cp quotes.png /usr/local/share/quote-indicator/
+else
+    echo "Error: quotes.png not found in current directory!"
+    exit 1
+fi
+
+# Copy the modified script to the system location
+sudo cp /tmp/quote-indicator-modified.py /usr/local/bin/quote-indicator
+sudo chmod +x /usr/local/bin/quote-indicator
+
+# Update the desktop file to use the custom icon
+cat > quote-indicator.desktop << EOF
+[Desktop Entry]
+Name=Quote Indicator
+Comment=Display random quotes at regular intervals
+Exec=/usr/local/bin/quote-indicator
+Icon=/usr/local/share/quote-indicator/quotes.png
+Terminal=false
+Type=Application
+Categories=Utility;
+X-GNOME-Autostart-enabled=true
+EOF
+
+# Copy the updated desktop file
+cp quote-indicator.desktop ~/.config/autostart/
+cp quote-indicator.desktop ~/.local/share/applications/
+
+echo "Custom icon successfully set up!"
+echo "You can restart the app by running 'quote-indicator' in a terminal."
