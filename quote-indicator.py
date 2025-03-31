@@ -16,7 +16,7 @@ class QuoteIndicator:
         self.app = 'quote-indicator'
         self.indicator = AppIndicator.Indicator.new(
             self.app,
-            "appointment-soon-symbolic",
+            "format-text-quote-symbolic",
             AppIndicator.IndicatorCategory.APPLICATION_STATUS
         )
         self.indicator.set_status(AppIndicator.IndicatorStatus.ACTIVE)
@@ -146,9 +146,16 @@ class QuoteIndicator:
             return
         
         quote = random.choice(quotes)
+        
+        # Only show author if it exists and isn't "Unknown"
+        if quote['author'] and quote['author'] != 'Unknown':
+            notification_text = f"\"{quote['text']}\"\n\n— {quote['author']}"
+        else:
+            notification_text = f"\"{quote['text']}\""
+            
         notification = notify2.Notification(
             "Quote of the Moment",
-            f"\"{quote['text']}\"\n\n— {quote['author']}"
+            notification_text
         )
         notification.set_timeout(10000)  # 10 seconds
         notification.show()
